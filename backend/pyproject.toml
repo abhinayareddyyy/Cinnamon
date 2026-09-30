@@ -1,0 +1,11 @@
+[project]
+name = "fraud-rule-engine"
+version = "1.0.0"
+description = "Pluggable fraud rule engine with SQLite persistence, AWS SES/SNS alerts and a review API"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore:Using `httpx` with `starlette.testclient`"]
