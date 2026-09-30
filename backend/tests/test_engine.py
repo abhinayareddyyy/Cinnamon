@@ -7,7 +7,7 @@ from datetime import timedelta
 
 import pytest
 
-from conftest import LONDON, NEW_YORK, make_txn
+from conftest import MAHARASHTRA, WEST_BENGAL, make_txn
 from fraud_engine.engine import RiskThresholds, RuleEngine, combine_scores
 from fraud_engine.models import RiskLevel
 from fraud_engine.rules import Rule, RuleRegistry, RuleResult, default_registry, load_rule_plugins
@@ -140,8 +140,8 @@ class TestRuleEngine:
         assert RuleResult("x", True, -5).score == 0
 
     def test_end_to_end_with_builtin_rules(self, engine):
-        history = [make_txn(at=timedelta(minutes=-30), location=NEW_YORK)]
-        evaluation = engine.evaluate(make_txn(location=LONDON), history)
+        history = [make_txn(at=timedelta(minutes=-30), location=MAHARASHTRA)]
+        evaluation = engine.evaluate(make_txn(location=WEST_BENGAL), history)
         assert [r.rule_name for r in evaluation.triggered] == ["impossible_travel"]
         assert evaluation.risk_level is RiskLevel.HIGH
 

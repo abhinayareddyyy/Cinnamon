@@ -9,8 +9,8 @@ const MEDIUM_TXN = makeTxn({
   account_id: 'acc-1003',
   amount: 3.5,
   merchant: 'Online Games Ltd',
-  city: 'Chicago',
-  country: 'US',
+  city: 'Tamil Nadu',
+  country: 'IN',
   risk_score: 50,
   risk_level: 'MEDIUM',
   notified_at: null,
@@ -83,7 +83,7 @@ describe('App', () => {
     await user.click(await screen.findByRole('row', { name: 'Transaction txn-1' }));
 
     const panel = await screen.findByRole('article', { name: 'Details for txn-1' });
-    expect(within(panel).getByText('5,570 km from New York, US in 40 min')).toBeInTheDocument();
+    expect(within(panel).getByText('1,650 km from Maharashtra, IN in 40 min')).toBeInTheDocument();
     expect(window.location.search).toBe('?txn=txn-1'); // shareable deep link
 
     await user.type(within(panel).getByLabelText('Reviewer'), 'Ana');
@@ -163,12 +163,12 @@ describe('App', () => {
     const amount = screen.getByLabelText('Amount');
     await user.clear(amount);
     await user.type(amount, '15000');
-    await user.selectOptions(screen.getByLabelText('Location'), 'tokyo');
+    await user.selectOptions(screen.getByLabelText('Location'), 'west_bengal');
     await user.click(screen.getByRole('button', { name: 'Score it' }));
 
     const status = await screen.findByRole('status');
     expect(status).toHaveTextContent('txn_new scored 70.0 (HIGH) — Unusual amount · alert sent');
     const post = fetchMock.mock.calls.find(([u, i]) => i?.method === 'POST');
-    expect(JSON.parse(post[1].body)).toMatchObject({ amount: 15000, city: 'Tokyo', latitude: 35.6762 });
+    expect(JSON.parse(post[1].body)).toMatchObject({ amount: 15000, city: 'West Bengal', latitude: 22.5726, currency: 'INR' });
   });
 });

@@ -23,13 +23,13 @@ def payload(**overrides):
     body = {
         "account_id": "acc-1",
         "amount": 42.5,
-        "currency": "usd",
+        "currency": "INR",
         "merchant": "Coffee",
         "timestamp": T0.isoformat(),
-        "latitude": 40.7128,
-        "longitude": -74.0060,
-        "city": "New York",
-        "country": "US",
+        "latitude": 19.0760,
+        "longitude": 72.8777,
+        "city": "Maharashtra",
+        "country": "IN",
     }
     body.update(overrides)
     return body
@@ -43,8 +43,8 @@ def submit(client, **overrides):
 
 def submit_impossible_travel(client, txn_id="hot"):
     submit(client, transaction_id="warmup", timestamp=(T0 - timedelta(minutes=30)).isoformat())
-    return submit(client, transaction_id=txn_id, latitude=51.5074, longitude=-0.1278,
-                  city="London", country="GB")
+    return submit(client, transaction_id=txn_id, latitude=22.5726, longitude=88.3639,
+                  city="West Bengal", country="IN")
 
 
 class TestSubmit:
@@ -52,7 +52,7 @@ class TestSubmit:
         body = submit(client)
         txn = body["transaction"]
         assert txn["transaction_id"].startswith("txn_")  # generated
-        assert txn["currency"] == "USD"
+        assert txn["currency"] == "INR"
         assert txn["flagged"] is False and txn["review_status"] is None
         assert {r["rule_name"] for r in body["rule_results"]} == {
             "velocity", "unusual_amount", "impossible_travel"}
@@ -63,7 +63,7 @@ class TestSubmit:
         txn = body["transaction"]
         assert txn["risk_level"] == "HIGH" and txn["review_status"] == "OPEN"
         assert txn["flags"][0]["rule_name"] == "impossible_travel"
-        assert txn["flags"][0]["details"]["previous_location"] == "New York, US"
+        assert txn["flags"][0]["details"]["previous_location"] == "Maharashtra, IN"
         assert body["alert_sent"] is True and txn["notified_at"] is not None
         assert len(notifier.alerts) == 1
 
@@ -77,7 +77,7 @@ class TestSubmit:
         [
             {"amount": 0},
             {"amount": -5},
-            {"currency": "DOLLARS"},
+            {"currency": "USD"},
             {"account_id": ""},
             {"latitude": 91},
             {"longitude": None},  # latitude without longitude
@@ -110,7 +110,7 @@ class TestQueryAndReview:
     def test_get_one(self, client):
         submit_impossible_travel(client)
         r = client.get("/api/transactions/hot")
-        assert r.status_code == 200 and r.json()["city"] == "London"
+        assert r.status_code == 200 and r.json()["city"] == "West Bengal"
         assert client.get("/api/transactions/missing").status_code == 404
 
     def test_review_flow(self, client):

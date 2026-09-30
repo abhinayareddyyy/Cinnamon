@@ -165,7 +165,7 @@ Other settings: `FRAUD_DB_PATH`, `MEDIUM_RISK_THRESHOLD`,
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/api/transactions` | Evaluate and store a transaction (201; 409 on duplicate id; 422 on invalid input) |
+| POST | `/api/transactions` | Evaluate and store an INR transaction (201; 409 on duplicate id; 422 on invalid input) |
 | GET | `/api/transactions?status=OPEN&risk_level=HIGH&account_id=&flagged=true&limit=&offset=` | Review queue |
 | GET | `/api/transactions/{id}` | Transaction with flags and review history |
 | POST | `/api/transactions/{id}/review` | `{"status": "REVIEWED" \| "CLEARED" \| "OPEN", "reviewer": "...", "note": "..."}` |
@@ -176,7 +176,7 @@ Other settings: `FRAUD_DB_PATH`, `MEDIUM_RISK_THRESHOLD`,
 Example:
 
 ```bash
-curl -X POST localhost:8000/api/transactions -H "Content-Type: application/json" -d "{\"account_id\":\"acc-1\",\"amount\":42.5,\"currency\":\"USD\",\"merchant\":\"Coffee\",\"latitude\":40.71,\"longitude\":-74.0,\"city\":\"New York\",\"country\":\"US\"}"
+curl -X POST localhost:8000/api/transactions -H "Content-Type: application/json" -d "{\"account_id\":\"acc-1\",\"amount\":4250,\"currency\":\"INR\",\"merchant\":\"Coffee\",\"latitude\":19.076,\"longitude\":72.8777,\"city\":\"Maharashtra\",\"country\":\"IN\"}"
 ```
 
 ## Testing

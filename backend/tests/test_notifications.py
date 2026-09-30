@@ -11,7 +11,7 @@ import boto3
 import pytest
 from botocore.stub import Stubber
 
-from conftest import LONDON, make_txn
+from conftest import WEST_BENGAL, make_txn
 from fraud_engine.engine import Evaluation
 from fraud_engine.models import RiskLevel
 from fraud_engine.notifications import (
@@ -27,7 +27,7 @@ from fraud_engine.rules import RuleResult
 
 @pytest.fixture
 def alert() -> FraudAlert:
-    txn = make_txn(txn_id="txn-42", account="acc-9", amount=2500, location=LONDON, merchant="Harrods")
+    txn = make_txn(txn_id="txn-42", account="acc-9", amount=2500, location=WEST_BENGAL, merchant="Kolkata Market")
     evaluation = Evaluation(
         "txn-42", 91.5, RiskLevel.HIGH,
         (RuleResult("impossible_travel", True, 85, "5,570 km in 30 min"),
@@ -45,7 +45,7 @@ class TestAlertContent:
     def test_subject_and_body(self, alert):
         assert alert.subject == "[Fraud alert: HIGH] Transaction txn-42 scored 92/100"
         body = alert.body()
-        for expected in ("acc-9", "2,500.00 USD", "Harrods", "London, GB", "91.5 (HIGH)",
+        for expected in ("acc-9", "2,500.00 INR", "Kolkata Market", "West Bengal, IN", "91.5 (HIGH)",
                          "impossible_travel (85): 5,570 km in 30 min",
                          "https://console.example/?txn=txn-42"):
             assert expected in body

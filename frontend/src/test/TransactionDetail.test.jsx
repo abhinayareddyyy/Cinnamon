@@ -18,7 +18,7 @@ describe('TransactionDetail', () => {
     expect(screen.getByText('Needs review')).toBeInTheDocument();
     expect(screen.getByText('Alert sent')).toBeInTheDocument();
     expect(screen.getByText('Impossible travel')).toBeInTheDocument();
-    expect(screen.getByText('5,570 km from New York, US in 40 min')).toBeInTheDocument();
+    expect(screen.getByText('1,650 km from Maharashtra, IN in 40 min')).toBeInTheDocument();
     expect(screen.getByText('Previous location')).toBeInTheDocument();
     expect(screen.getByText('No decisions recorded yet.')).toBeInTheDocument();
   });

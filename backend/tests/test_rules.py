@@ -7,7 +7,7 @@ from datetime import timedelta
 
 import pytest
 
-from conftest import BOSTON, LONDON, NEW_YORK, TOKYO, make_txn
+from conftest import GOA, KARNATAKA, MAHARASHTRA, TAMIL_NADU, WEST_BENGAL, make_txn
 from fraud_engine.rules import (
     ImpossibleTravelRule,
     RuleContext,
@@ -69,7 +69,7 @@ class TestVelocityRule:
 
 class TestUnusualAmountRule:
     @staticmethod
-    def history(amounts, currency="USD"):
+    def history(amounts, currency="INR"):
         return [
             make_txn(amount=a, at=timedelta(days=-(i + 1)), currency=currency)
             for i, a in enumerate(amounts)
@@ -131,12 +131,12 @@ class TestUnusualAmountRule:
         result = rule.evaluate(make_txn(amount=12_000), ctx(*hist))
         assert result.score == 100  # z-score check beats the 70 from the hard limit
 
-    def test_only_same_currency_history_is_compared(self):
+    def test_same_currency_history_is_compared(self):
         rule = UnusualAmountRule(absolute_limit=None)
-        hist = self.history([5000, 6000, 5500, 4800, 5200], currency="JPY")
-        result = rule.evaluate(make_txn(amount=300, currency="USD"), ctx(*hist))
+        hist = self.history([5000, 6000, 5500, 4800, 5200], currency="INR")
+        result = rule.evaluate(make_txn(amount=300, currency="INR"), ctx(*hist))
         assert not result.triggered
-        assert result.details["history_size"] == 0
+        assert result.details["history_size"] == 5
 
     def test_lookback_limits_samples(self):
         rule = UnusualAmountRule(lookback=5, min_history=5, absolute_limit=None)
@@ -156,62 +156,62 @@ class TestUnusualAmountRule:
 
 class TestImpossibleTravelRule:
     def test_haversine_known_distance(self):
-        # New York -> London is ~5,570 km
-        assert haversine_km(NEW_YORK, LONDON) == pytest.approx(5570, rel=0.01)
-        assert haversine_km(NEW_YORK, NEW_YORK) == 0
+        # Maharashtra -> West Bengal is ~1,650 km
+        assert haversine_km(MAHARASHTRA, WEST_BENGAL) == pytest.approx(1650, rel=0.01)
+        assert haversine_km(MAHARASHTRA, MAHARASHTRA) == 0
 
-    def test_new_york_to_london_in_one_hour_triggers(self):
+    def test_maharashtra_to_west_bengal_in_one_hour_triggers(self):
         rule = ImpossibleTravelRule()
-        prev = make_txn(at=timedelta(hours=-1), location=NEW_YORK)
-        result = rule.evaluate(make_txn(location=LONDON), ctx(prev))
+        prev = make_txn(at=timedelta(hours=-1), location=MAHARASHTRA)
+        result = rule.evaluate(make_txn(location=WEST_BENGAL), ctx(prev))
         assert result.triggered
         assert 60 < result.score < 100
         assert result.details["previous_transaction_id"] == prev.transaction_id
-        assert result.details["speed_kmh"] == pytest.approx(5570, rel=0.01)
-        assert "New York" in result.reason
+        assert result.details["speed_kmh"] == pytest.approx(1650, rel=0.01)
+        assert "Maharashtra" in result.reason
 
     def test_plausible_trip_does_not_trigger(self):
         rule = ImpossibleTravelRule()
-        prev = make_txn(at=timedelta(hours=-4), location=NEW_YORK)  # ~300 km in 4 h
-        assert not rule.evaluate(make_txn(location=BOSTON), ctx(prev)).triggered
+        prev = make_txn(at=timedelta(hours=-4), location=MAHARASHTRA)  # ~835 km in 4 h
+        assert not rule.evaluate(make_txn(location=GOA), ctx(prev)).triggered
 
     def test_long_flight_with_enough_time_does_not_trigger(self):
         rule = ImpossibleTravelRule()
-        prev = make_txn(at=timedelta(hours=-14), location=NEW_YORK)  # ~10,800 km in 14 h
-        assert not rule.evaluate(make_txn(location=TOKYO), ctx(prev)).triggered
+        prev = make_txn(at=timedelta(hours=-14), location=MAHARASHTRA)  # ~1,650 km in 14 h
+        assert not rule.evaluate(make_txn(location=TAMIL_NADU), ctx(prev)).triggered
 
     def test_simultaneous_distant_transactions_score_100(self):
         rule = ImpossibleTravelRule()
-        prev = make_txn(at=timedelta(0), location=NEW_YORK)
-        result = rule.evaluate(make_txn(at=timedelta(0), location=TOKYO), ctx(prev))
+        prev = make_txn(at=timedelta(0), location=MAHARASHTRA)
+        result = rule.evaluate(make_txn(at=timedelta(0), location=WEST_BENGAL), ctx(prev))
         assert result.triggered
         assert result.score == 100
         assert result.details["speed_kmh"] is None  # infinity is not JSON friendly
 
     def test_short_hops_below_min_distance_are_ignored(self):
         rule = ImpossibleTravelRule(min_distance_km=500)
-        prev = make_txn(at=timedelta(minutes=-1), location=NEW_YORK)
-        assert not rule.evaluate(make_txn(location=BOSTON), ctx(prev)).triggered
+        prev = make_txn(at=timedelta(minutes=-1), location=MAHARASHTRA)
+        assert not rule.evaluate(make_txn(location=GOA), ctx(prev)).triggered
 
     def test_uses_latest_located_transaction(self):
         rule = ImpossibleTravelRule()
-        located = make_txn(at=timedelta(hours=-1), location=NEW_YORK)
+        located = make_txn(at=timedelta(hours=-1), location=MAHARASHTRA)
         unlocated = make_txn(at=timedelta(minutes=-5), location=None)  # e.g. online purchase
-        result = rule.evaluate(make_txn(location=LONDON), ctx(located, unlocated))
+        result = rule.evaluate(make_txn(location=WEST_BENGAL), ctx(located, unlocated))
         assert result.triggered
 
     @pytest.mark.parametrize("has_current, has_previous", [(False, True), (True, False)])
     def test_missing_locations_do_not_trigger(self, has_current, has_previous):
         rule = ImpossibleTravelRule()
-        history = [make_txn(at=timedelta(hours=-1), location=NEW_YORK)] if has_previous else []
-        txn = make_txn(location=LONDON if has_current else None)
+        history = [make_txn(at=timedelta(hours=-1), location=MAHARASHTRA)] if has_previous else []
+        txn = make_txn(location=WEST_BENGAL if has_current else None)
         assert not rule.evaluate(txn, ctx(*history)).triggered
 
     def test_score_approaches_100_as_speed_grows(self):
         rule = ImpossibleTravelRule()
-        prev_slow = make_txn(at=timedelta(hours=-5), location=NEW_YORK)  # ~1,100 km/h
-        prev_fast = make_txn(at=timedelta(minutes=-5), location=NEW_YORK)
-        slow = rule.evaluate(make_txn(location=LONDON), ctx(prev_slow)).score
-        fast = rule.evaluate(make_txn(location=LONDON), ctx(prev_fast)).score
+        prev_slow = make_txn(at=timedelta(hours=-1.5), location=MAHARASHTRA)  # ~1,100 km/h
+        prev_fast = make_txn(at=timedelta(minutes=-5), location=MAHARASHTRA)
+        slow = rule.evaluate(make_txn(location=WEST_BENGAL), ctx(prev_slow)).score
+        fast = rule.evaluate(make_txn(location=WEST_BENGAL), ctx(prev_fast)).score
         assert 60 < slow < fast < 100
         assert not math.isnan(fast)

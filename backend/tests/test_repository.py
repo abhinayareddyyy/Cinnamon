@@ -6,7 +6,7 @@ from datetime import timedelta
 
 import pytest
 
-from conftest import NEW_YORK, T0, make_txn
+from conftest import MAHARASHTRA, T0, make_txn
 from fraud_engine.engine import Evaluation
 from fraud_engine.models import ReviewStatus, RiskLevel
 from fraud_engine.repository import (
@@ -34,7 +34,7 @@ def store(repo, txn, *hits, **kw):
 
 class TestSaveAndLoad:
     def test_round_trip_preserves_transaction_and_verdict(self, repo):
-        txn = store(repo, make_txn(amount=123.45, location=NEW_YORK, merchant="Shop"),
+        txn = store(repo, make_txn(amount=123.45, location=MAHARASHTRA, merchant="Shop"),
                     ("velocity", 55), ("unusual_amount", 40), score=73)
         rec = repo.get_transaction(txn.transaction_id)
         assert rec.transaction == txn  # timestamps, location, currency all survive

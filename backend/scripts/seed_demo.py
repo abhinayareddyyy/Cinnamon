@@ -23,13 +23,12 @@ from fraud_engine.models import Location, Transaction
 from fraud_engine.service import FraudService, build_service
 
 CITIES = {
-    "new_york": Location(40.7128, -74.0060, "New York", "US"),
-    "london": Location(51.5074, -0.1278, "London", "GB"),
-    "san_francisco": Location(37.7749, -122.4194, "San Francisco", "US"),
-    "chicago": Location(41.8781, -87.6298, "Chicago", "US"),
-    "berlin": Location(52.5200, 13.4050, "Berlin", "DE"),
-    "tokyo": Location(35.6762, 139.6503, "Tokyo", "JP"),
-    "boston": Location(42.3601, -71.0589, "Boston", "US"),
+    "maharashtra": Location(19.0760, 72.8777, "Maharashtra", "IN"),
+    "karnataka": Location(12.9716, 77.5946, "Karnataka", "IN"),
+    "west_bengal": Location(22.5726, 88.3639, "West Bengal", "IN"),
+    "tamil_nadu": Location(13.0827, 80.2707, "Tamil Nadu", "IN"),
+    "telangana": Location(17.3850, 78.4867, "Telangana", "IN"),
+    "rajasthan": Location(26.9124, 75.7873, "Rajasthan", "IN"),
 }
 MERCHANTS = ["Blue Bottle Coffee", "Whole Foods", "Shell", "Amazon", "Uber", "Netflix", "Target"]
 
@@ -42,7 +41,7 @@ class Seeder:
         self.rng = random.Random(42)  # deterministic demo data
 
     def txn(self, account: str, amount: float, ago: timedelta, city: str | None,
-            merchant: str | None = None, currency: str = "USD") -> None:
+            merchant: str | None = None, currency: str = "INR") -> None:
         self.counter += 1
         result = self.service.process_transaction(
             Transaction(
@@ -63,7 +62,7 @@ class Seeder:
                   f"{'  -> alert sent' if result.alert_sent else ''}")
 
     def normal_history(self, account: str, city: str, low: float, high: float,
-                       count: int = 12, currency: str = "USD") -> None:
+                       count: int = 12, currency: str = "INR") -> None:
         """A couple of weeks of unremarkable spending at home."""
         for i in range(count):
             ago = timedelta(days=14 - i, hours=self.rng.uniform(0, 8))
@@ -71,40 +70,39 @@ class Seeder:
 
     def run(self) -> None:
         print("Normal history...")
-        self.normal_history("acc-1001", "new_york", 15, 120)
-        self.normal_history("acc-1002", "san_francisco", 20, 150)
-        self.normal_history("acc-1003", "chicago", 10, 80)
-        self.normal_history("acc-1004", "berlin", 20, 90, currency="EUR")
-        self.normal_history("acc-1007", "boston", 30, 200)
+        self.normal_history("acc-1001", "maharashtra", 1500, 12000)
+        self.normal_history("acc-1002", "karnataka", 2000, 15000)
+        self.normal_history("acc-1003", "tamil_nadu", 1000, 8000)
+        self.normal_history("acc-1004", "west_bengal", 2000, 9000)
+        self.normal_history("acc-1007", "telangana", 3000, 20000)
 
         print("Fraud scenarios...")
-        # 1. Impossible travel: New York, then London 40 minutes later.
-        self.txn("acc-1001", 42.10, timedelta(hours=3), "new_york")
-        self.txn("acc-1001", 55.00, timedelta(hours=2, minutes=20), "london", "Harrods")
+        # 1. Impossible travel: Maharashtra, then West Bengal 40 minutes later.
+        self.txn("acc-1001", 4210.00, timedelta(hours=3), "maharashtra")
+        self.txn("acc-1001", 5500.00, timedelta(hours=2, minutes=20), "west_bengal", "Kolkata Market")
 
-        # 2. Unusual amount: a spender averaging ~$85 suddenly spends $330 (MEDIUM) and $4,800 (HIGH).
-        self.txn("acc-1002", 330.00, timedelta(hours=5), "san_francisco", "Best Buy")
-        self.txn("acc-1002", 4_800.00, timedelta(hours=2), "san_francisco", "Apple Store")
+        # 2. Unusual amount: a spender averaging ~INR 8,500 suddenly spends INR 33,000 and INR 4,80,000.
+        self.txn("acc-1002", 33000.00, timedelta(hours=5), "karnataka", "Bengaluru Electronics")
+        self.txn("acc-1002", 480000.00, timedelta(hours=2), "karnataka", "Tech Bazaar")
 
         # 3. Velocity / card testing: 8 tiny charges within 6 minutes.
         for i in range(8):
             self.txn("acc-1003", self.rng.uniform(1, 5), timedelta(minutes=95 - i * 0.75),
-                     "chicago", "Online Games Ltd")
+                     "tamil_nadu", "Online Games Ltd")
 
-        # 4. Combined: large EUR amount from Tokyo 30 min after Berlin -> HIGH, alert.
-        self.txn("acc-1004", 35.00, timedelta(minutes=80), "berlin")
-        self.txn("acc-1004", 2_900.00, timedelta(minutes=50), "tokyo", "Akihabara Electronics",
-                 currency="EUR")
+        # 4. Combined: large INR amount from West Bengal 30 min after Telangana -> HIGH, alert.
+        self.txn("acc-1004", 3500.00, timedelta(minutes=80), "west_bengal")
+        self.txn("acc-1004", 290000.00, timedelta(minutes=50), "telangana", "Hyderabad Electronics")
 
         # 5. Brand-new account, first transaction above the hard limit.
-        self.txn("acc-1005", 15_000.00, timedelta(minutes=30), "new_york", "Wire Transfer Co")
+        self.txn("acc-1005", 1_500_000.00, timedelta(minutes=30), "maharashtra", "Wire Transfer Co")
 
-        # 6. Plausible travel (New York -> Boston in 4h) and a normal amount: not flagged.
-        self.txn("acc-1007", 90.00, timedelta(hours=6), "new_york")
-        self.txn("acc-1007", 75.00, timedelta(hours=2), "boston")
+        # 6. Plausible travel (Telangana -> Karnataka in 4h) and a normal amount: not flagged.
+        self.txn("acc-1007", 9000.00, timedelta(hours=6), "telangana")
+        self.txn("acc-1007", 7500.00, timedelta(hours=2), "karnataka")
 
         # 7. Only flagged when the example plug-in is loaded (RULE_PLUGINS=plugins.blocked_merchant).
-        self.txn("acc-1007", 60.00, timedelta(minutes=10), "boston", "CryptoMixer")
+        self.txn("acc-1007", 6000.00, timedelta(minutes=10), "karnataka", "CryptoMixer")
 
 
 def main() -> None:

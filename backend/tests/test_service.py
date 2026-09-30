@@ -8,7 +8,7 @@ from datetime import timedelta
 
 import pytest
 
-from conftest import LONDON, NEW_YORK, RecordingNotifier, make_txn
+from conftest import MAHARASHTRA, WEST_BENGAL, RecordingNotifier, make_txn
 from fraud_engine.config import Settings
 from fraud_engine.models import ReviewStatus, RiskLevel
 from fraud_engine.notifications import LoggingNotifier
@@ -25,13 +25,13 @@ class TestProcessing:
 
     def test_history_from_the_database_drives_the_rules(self, service):
         """The service must feed previously stored transactions to the engine."""
-        service.process_transaction(make_txn(at=timedelta(minutes=-20), location=NEW_YORK))
-        result = service.process_transaction(make_txn(location=LONDON))
+        service.process_transaction(make_txn(at=timedelta(minutes=-20), location=MAHARASHTRA))
+        result = service.process_transaction(make_txn(location=WEST_BENGAL))
         assert [r.rule_name for r in result.evaluation.triggered] == ["impossible_travel"]
 
     def test_high_risk_sends_one_alert_and_marks_notified(self, service, notifier):
-        service.process_transaction(make_txn(at=timedelta(minutes=-20), location=NEW_YORK))
-        result = service.process_transaction(make_txn(txn_id="hot", location=LONDON))
+        service.process_transaction(make_txn(at=timedelta(minutes=-20), location=MAHARASHTRA))
+        result = service.process_transaction(make_txn(txn_id="hot", location=WEST_BENGAL))
         assert result.evaluation.risk_level is RiskLevel.HIGH
         assert result.alert_sent
         assert [a.transaction.transaction_id for a in notifier.alerts] == ["hot"]

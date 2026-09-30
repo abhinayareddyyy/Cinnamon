@@ -5,11 +5,11 @@ import { ruleLabel } from '../format.js';
 /** Preset places so testers can provoke the impossible-travel rule quickly. */
 export const PLACES = {
   none: null,
-  new_york: { latitude: 40.7128, longitude: -74.006, city: 'New York', country: 'US' },
-  boston: { latitude: 42.3601, longitude: -71.0589, city: 'Boston', country: 'US' },
-  london: { latitude: 51.5074, longitude: -0.1278, city: 'London', country: 'GB' },
-  berlin: { latitude: 52.52, longitude: 13.405, city: 'Berlin', country: 'DE' },
-  tokyo: { latitude: 35.6762, longitude: 139.6503, city: 'Tokyo', country: 'JP' },
+  maharashtra: { latitude: 19.076, longitude: 72.8777, city: 'Maharashtra', country: 'IN' },
+  karnataka: { latitude: 12.9716, longitude: 77.5946, city: 'Karnataka', country: 'IN' },
+  west_bengal: { latitude: 22.5726, longitude: 88.3639, city: 'West Bengal', country: 'IN' },
+  tamil_nadu: { latitude: 13.0827, longitude: 80.2707, city: 'Tamil Nadu', country: 'IN' },
+  telangana: { latitude: 17.385, longitude: 78.4867, city: 'Telangana', country: 'IN' },
 };
 
 /**
@@ -20,9 +20,9 @@ export default function SimulatePanel({ onSubmitted }) {
   const [form, setForm] = useState({
     account_id: 'acc-2001',
     amount: '49.99',
-    currency: 'USD',
+    currency: 'INR',
     merchant: 'Test Merchant',
-    place: 'new_york',
+    place: 'maharashtra',
   });
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -62,7 +62,7 @@ export default function SimulatePanel({ onSubmitted }) {
         </label>
         <label className="field field-sm">
           <span>Currency</span>
-          <input value={form.currency} onChange={update('currency')} required pattern="[A-Za-z]{3}" maxLength={3} />
+          <input value="INR" readOnly aria-label="Currency" />
         </label>
         <label className="field">
           <span>Merchant</span>

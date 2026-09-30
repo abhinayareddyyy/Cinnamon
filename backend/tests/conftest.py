@@ -16,10 +16,11 @@ from fraud_engine.service import FraudService
 
 T0 = datetime(2026, 9, 1, 12, 0, tzinfo=timezone.utc)
 
-NEW_YORK = Location(40.7128, -74.0060, "New York", "US")
-BOSTON = Location(42.3601, -71.0589, "Boston", "US")
-LONDON = Location(51.5074, -0.1278, "London", "GB")
-TOKYO = Location(35.6762, 139.6503, "Tokyo", "JP")
+MAHARASHTRA = Location(19.0760, 72.8777, "Maharashtra", "IN")
+KARNATAKA = Location(12.9716, 77.5946, "Karnataka", "IN")
+WEST_BENGAL = Location(22.5726, 88.3639, "West Bengal", "IN")
+TAMIL_NADU = Location(13.0827, 80.2707, "Tamil Nadu", "IN")
+GOA = Location(15.4909, 73.8278, "Goa", "IN")
 
 _ids = itertools.count(1)
 
@@ -30,7 +31,7 @@ def make_txn(
     amount: float = 50.0,
     at: datetime | timedelta = timedelta(0),
     location: Location | None = None,
-    currency: str = "USD",
+    currency: str = "INR",
     merchant: str = "Coffee Shop",
     txn_id: str | None = None,
 ) -> Transaction:

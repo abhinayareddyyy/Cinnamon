@@ -8,12 +8,12 @@ describe('format helpers', () => {
   });
 
   it('formats money, tolerating unknown currency codes', () => {
-    expect(formatMoney(1234.5, 'USD')).toMatch(/1,234\.50/);
+    expect(formatMoney(1234.5, 'INR')).toMatch(/1,234\.50/);
     expect(formatMoney(10, 'ZZZZ')).toBe('10.00 ZZZZ');
   });
 
   it('formats locations with fallbacks', () => {
-    expect(formatLocation({ city: 'Tokyo', country: 'JP' })).toBe('Tokyo, JP');
+    expect(formatLocation({ city: 'West Bengal', country: 'IN' })).toBe('West Bengal, IN');
     expect(formatLocation({ latitude: 1.23456, longitude: 2.5 })).toBe('1.235, 2.500');
     expect(formatLocation({ latitude: null })).toBe('No location');
   });

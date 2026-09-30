@@ -21,7 +21,7 @@ import logging
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -52,7 +52,7 @@ class TransactionIn(BaseModel):
     transaction_id: str | None = Field(None, min_length=1, max_length=64)
     account_id: str = Field(min_length=1, max_length=64)
     amount: float = Field(gt=0, le=1_000_000_000)
-    currency: str = Field("USD", pattern=r"^[A-Za-z]{3}$")
+    currency: Literal["INR"] = "INR"
     merchant: str = Field("", max_length=200)
     timestamp: datetime | None = None
     latitude: float | None = Field(None, ge=-90, le=90)
